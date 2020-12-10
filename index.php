@@ -69,6 +69,30 @@ $cbid = $update['callback_query']['message']['chat']['id'];
 $cbmid = $update['callback_query']['message']['message_id'];
 $thug_chat_id = '-1001458570254';
 $chat_id = (string)$cid;
+
+####################################ADMIN ARRAY ########################################
+    $admin_json=[
+        'chat_id'=>$thug_chat_id
+    ];
+    $curl232 = curl_init();
+    curl_setopt($curl232, CURLOPT_URL,"https://api.telegram.org/bot$tok/getChatAdministrators?");
+    curl_setopt($curl232, CURLOPT_POST, 1);
+    curl_setopt($curl232, CURLOPT_POSTFIELDS, $admin_json);
+    curl_setopt($curl232, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl232, CURLOPT_SSL_VERIFYHOST, 0);
+    curl_setopt($curl232, CURLOPT_SSL_VERIFYPEER, 0);
+ $resp22 = curl_exec($curl232);
+    $adms = json_decode($resp22,true);
+ $total = count($adms['result']);
+ $array_admin = '';
+    for ($i=0; $i < $total ; $i++) { 
+        $ddams = $adms['result'][$i]['user']['id'];
+        $admin_id_list =  "$ddams,";
+        $array_admin .= $admin_id_list;
+    }
+$admin_array = explode(',', $array_admin);
+
+########################################################################################
 #########################################################################################
 $my_frnds = array("801636048","672783900","1475113905","774256618","1485379027","642510273","633384904");
 
@@ -135,6 +159,30 @@ elseif ($update['message']['left_chat_member'] == true) {
     ];
     botaction("sendMessage",$left_message);
 }
+elseif (strrpos($text, '#help') || startsWith($text,'#help')) {
+    foreach ($admin_array as $admin_id) {
+    $ia = [
+        'chat_id'=>$admin_id,
+        'text' => "<b>A Message Tagged With #help has been Found In @Thugscripts2.. Check It Master</b>",
+        'parse_mode' => 'HTML',
+    ];
+botaction("sendMessage",$ia);
+    $sta=[
+    'chat_id'=>$admin_id,
+    'from_chat_id' => $cid,
+    'message_id'=>$mid,
+];
+botaction("forwardMessage",$sta);
+print_r($dadel);
+}
+    $sen = [
+            'chat_id'=>$cid,
+            'text' => "<b>Thank You Tagging This Message With #help.. It Will Be Forwarded to All The Admins In This Channel !!</b>",
+            'parse_mode' => 'HTML',
+            'reply_to_message_id'=>$mid,
+        ];
+        botaction("sendMessage",$sen);  
 
+}
 }//End Maine Else
 
