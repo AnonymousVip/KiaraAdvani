@@ -1,7 +1,6 @@
 <?php
 error_reporting(0);
 $tok = '1481445555:AAF3eYzgz6KZGDcHw7VpBhVqDSN5fUc4CTE';
-
 function botaction($method, $data){
 	global $tok;
 	global $dadel;
@@ -18,6 +17,12 @@ function botaction($method, $data){
     $dueto = $dadel['description'];
     return $output;
 }
+function startsWith ($string, $startString) 
+{ 
+    $len = strlen($startString); 
+    return (substr($string, 0, $len) === $startString); 
+}
+
 $update = file_get_contents('php://input');
 $update = json_decode($update, true);
 
@@ -69,8 +74,6 @@ $cbid = $update['callback_query']['message']['chat']['id'];
 $cbmid = $update['callback_query']['message']['message_id'];
 $thug_chat_id = '-1001458570254';
 $chat_id = (string)$cid;
-
-####################################ADMIN ARRAY ########################################
     $admin_json=[
         'chat_id'=>$thug_chat_id
     ];
@@ -91,11 +94,33 @@ $chat_id = (string)$cid;
         $array_admin .= $admin_id_list;
     }
 $admin_array = explode(',', $array_admin);
+print_r($admin_array);
 
-########################################################################################
 #########################################################################################
 $my_frnds = array("801636048","672783900","1475113905","774256618","1485379027","642510273","633384904");
+$ch12 = curl_init();
+curl_setopt($ch12, CURLOPT_URL, "https://api.telegram.org/bot$tok/getChatMember?chat_id=$cid&user_id=$reply_message_user_id"); 
+curl_setopt($ch12, CURLOPT_POST, false); 
+curl_setopt($ch12, CURLOPT_RETURNTRANSFER, 1); 
+    $output212 = curl_exec($ch12);
+$json122 = json_decode($output212,true);
+    curl_close($ch122);
+$can_send_messages =  $json122['result']['can_send_messages'];
+$can_send_media_messages = $json122['result']['can_send_media_messages'];
+$can_send_other_messages = $json122['result']['can_send_other_messages'];
+$can_add_web_page_previews = $json122['result']['can_add_web_page_previews'];
+$stato = $json122['result']['status'];
+##########################################################################################
 
+#####################################CHECK ADMIN #########################################
+$admi = curl_init();
+curl_setopt($admi, CURLOPT_URL, "https://api.telegram.org/bot$tok/getChatMember?chat_id=$cid&user_id=$fid"); 
+curl_setopt($admi, CURLOPT_POST, false); 
+curl_setopt($admi, CURLOPT_RETURNTRANSFER, 1); 
+    $output2121 = curl_exec($admi);
+$json1221 = json_decode($output2121,true);
+    curl_close($admi);
+$status = $json1221['result']['status'];
 
 #########################################################################################
 if($chat_id !== $thug_chat_id){
@@ -159,30 +184,152 @@ elseif ($update['message']['left_chat_member'] == true) {
     ];
     botaction("sendMessage",$left_message);
 }
-elseif (strrpos($text, '#help') || startsWith($text,'#help')) {
-    foreach ($admin_array as $admin_id) {
-    $ia = [
-        'chat_id'=>$admin_id,
-        'text' => "<b>A Message Tagged With #help has been Found In @Thugscripts2.. Check It Master</b>",
-        'parse_mode' => 'HTML',
+ if(startsWith($text,'/mute')){
+if (!in_array('1481445555', $admin_array)) {
+    $i_am_not = [
+        'chat_id'=>$cid,
+        'text'=>'I am Not Admin To Mute And Unmute Members !!',
+        'reply_to_message_id'=>$mid
     ];
-botaction("sendMessage",$ia);
-    $sta=[
-    'chat_id'=>$admin_id,
-    'from_chat_id' => $cid,
-    'message_id'=>$mid,
-];
-botaction("forwardMessage",$sta);
-print_r($dadel);
+    botaction("sendMessage",$i_am_not);
 }
-    $sen = [
+else{
+    $res = str_replace("/mute", "", $text);
+    if ($res == '') {
+        $mute  = "<b>Silence Now...🤫🤫\n<a href='t.me/$reply_message_user_uname'>$reply_message_user_fname</a> Is Muted...🤐🔇</b>";
+    }
+    else{
+        $mute = "<b>Silence Now...\n<a href='t.me/$reply_message_user_uname'>$reply_message_user_fname</a> Is Muted...🤐🔇\nReason => <i>$res</i></b>";
+    }
+    if ($reply_message) {
+        if (in_array($reply_message_user_id, $admin_array)) {
+    $no_cant = [
+        'chat_id'=>$cid,
+        'reply_to_message_id'=>$mid,
+        'parse_mode'=>'HTML',
+        'text'=>"<b> How High Are You To Mute An Admin</b>"
+    ];
+        botaction("sendMessage",$no_cant);
+}
+elseif($reply_message_user_id == '1481445555'){
+    $no_cant_ever = [
+        'chat_id'=>$cid,
+        'reply_to_message_id'=>$mid,
+        'parse_mode'=>'HTML',
+        'text'=>"<b>Have U became So Big To Mute Me??? Just Be In Your Limits</b>"
+    ];
+        botaction("sendMessage",$no_cant);
+}
+        elseif($status == 'creator' || $status == 'administrator'){
+        if (is_null($can_send_messages) or $can_send_messages == '1') { # code
+            $muting_member = [
             'chat_id'=>$cid,
-            'text' => "<b>Thank You Tagging This Message With #help.. It Will Be Forwarded to All The Admins In This Channel !!</b>",
-            'parse_mode' => 'HTML',
-            'reply_to_message_id'=>$mid,
+            'user_id'=>$reply_message_user_id,
+            'can_send_messages'=>'False'
         ];
-        botaction("sendMessage",$sen);  
+        botaction("restrictChatMember",$muting_member);
+        $mute_message = [
+        'chat_id'=>$cid,
+        'reply_to_message_id'=>$mid,
+        'parse_mode'=>'HTML',
+        'disable_web_page_preview'=>'True',
+        'text'=>"$mute"
+        ];
+        botaction("sendMessage",$mute_message);
+}
+        else{
+            $user_is_muted = [
+            'chat_id'=>$cid,
+            'text' => "<b>There Is already a Cheese Burger 🍔 in his Mouth 😁.. \n[<i>User Is Already Muted</i>]</b>",
+            'parse_mode'=>'HTML',
+            'reply_to_message_id'=>$mid,
+                ];
+            botaction("sendMessage",$user_is_muted);
+                        }
 
+        }
+
+
+        else{
+        $who1 = [
+            'chat_id'=>$cid,
+            'reply_to_message_id'=>$mid,
+            'caption'=>"<b>Who The Hell Are You !! Only Admins Are Allowed To Perform This Action..\nWant A Infinity Snap ??🤜</b>",
+            'parse_mode'=>'HTML',
+            'video'=>'https://s2.gifyu.com/images/ezgif.com-gif-maker93d51c6b80ca89ad.gif',
+        ];
+        botaction("sendVideo",$who1);
+        }   
+
+}
+else{
+    $no_reply = [
+            'chat_id'=>$cid,
+            'reply_to_message_id'=>$mid,
+            'parse_mode'=>'HTML',
+            'text'=>"<b>Is He A user??? Reply To A User's Message To Mute Him</b>"
+        ];
+        botaction("sendMessage",$no_reply);
+}
+}
+}
+
+if (startsWith($text,'/unmute')) {  
+    if ($reply_message == true) {
+        if($status == 'creator' || $status == 'adminstrator'){
+        if(is_null($can_send_messages) and is_null($can_send_media_messages) and is_null($can_send_other_messages) and is_null($can_add_web_page_previews) or $can_send_messages == '1' and $can_send_media_messages == '1' and $can_send_other_messages == '1' and $can_add_web_page_previews == '1'){
+            $user_already_unmuted = [
+            'chat_id'=>$cid,
+            'reply_to_message_id'=>$mid,
+            'parse_mode'=>'HTML',
+            'text'=>"<b>User Is Already Unmuted..</b>"
+        ];
+        botaction("sendMessage",$user_already_unmuted);
+        }
+        else{
+        $unmute_message = [
+            'chat_id'=>$cid,
+            'reply_to_message_id'=>$mid,
+            'parse_mode'=>'HTML',
+            'text'=>"<b>$reply_message_user_fname Is Free Now... User Unmuted</b>"
+        ];
+        botaction("sendMessage",$unmute_message);
+$unmuting_member = [
+'chat_id'=>$cid,
+'user_id'=>$reply_message_user_id,
+'can_send_messages'=>'True',
+'can_invite_users'=>'True',
+'can_pin_messages'=>'True',
+'can_send_polls'=>'True',
+'can_change_info'=>'True',
+'can_send_media_messages'=>'True',
+'can_send_other_messages'=>'True',
+'can_add_web_page_previews'=>'True',
+];
+        botaction("restrictChatMember",$unmuting_member);
+        print_r($dadel);
+}
+    }
+    else{
+        $who = [
+            'chat_id'=>$cid,
+            'reply_to_message_id'=>$mid,
+            'caption'=>"<b>Who The Hell Are You !! Only Admins Are Allowed To Perform This Action..\nWant A Infinity Snap ??🤜</b>",
+            'parse_mode'=>'HTML',
+            'video'=>'https://s2.gifyu.com/images/ezgif.com-gif-maker93d51c6b80ca89ad.gif',
+        ];
+        botaction("sendVideo",$who);
+    }
+}
+    else{
+        $no_reply = [
+            'chat_id'=>$cid,
+            'reply_to_message_id'=>$mid,
+            'parse_mode'=>'HTML',
+            'text'=>"<b>Is He A user??? Reply To A User's Message To Un-Mute Him</b>"
+        ];
+        botaction("sendMessage",$no_reply);
+    }
 }
 }//End Maine Else
 
