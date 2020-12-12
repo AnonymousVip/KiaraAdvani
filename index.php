@@ -72,7 +72,7 @@ $callback_user_data = $update['callback_query']['data'];
 $callback_message_id = $update['callback_query']['message']['id'];
 $cbid = $update['callback_query']['message']['chat']['id'];
 $cbmid = $update['callback_query']['message']['message_id'];
-$thug_chat_id = '-1001458570254';
+$thug_chat_id = '-1001291062558';
 $chat_id = (string)$cid;
     $admin_json=[
         'chat_id'=>$thug_chat_id
@@ -331,5 +331,92 @@ $unmuting_member = [
         botaction("sendMessage",$no_reply);
     }
 }
+
+
+if (startsWith($text,'/add')) {
+    if(strpos($text,'"')){
+        $mess_arr = str_replace('/add', "", $text);
+        $mess_arr = explode('"', $text);
+        $keyword = $mess_arr['1'];
+        $reply = $mess_arr['2'];
+    }
+    else{
+        $mess_arr = str_replace("/add","",$text);
+        $mess_arr = explode(' ',$text);
+        array_shift($mess_arr);
+        $keyword = array_shift($mess_arr);
+        $reply = str_replace(" ", "%20",implode(' ',$mess_arr));
+    }
+
+    if($reply_message){
+
+    }
+    elseif($keyword == true && $reply == true){
+        echo "Hmmm";
+        echo "https://4b3d0cc2c052.ngrok.io/Kiara/add_filter.php?key_word=$keyword&reply_message=$reply&type=message";
+echo file_get_contents("https://4b3d0cc2c052.ngrok.io/Kiara/add_filter.php?key_word=$keyword&reply_message=$reply&type=message");    
+}
+    else{
+        $wrng_frmt = [
+            'chat_id'=>$cid,
+            'text'=>'Wrong Format !!',
+            'reply_to_message_id'=>$mid,
+        ];
+        botaction("sendMessage",$wrng_frmt);
+    }
+}
+
+
+if (startsWith($text,'/insta')) {
+    $username = str_replace('/insta ', "", $text);
+    if($username == '/insta'){
+        $wrng_frmat = [
+            'chat_id'=>$cid,
+            'text'=>"*Enter Correct Format Dude!!!* \n Syntax :-``` /insta <username_without_@> ```",
+            'reply_to_message_id'=>$mid,
+            'parse_mode'=>"MarkdownV2",
+];
+botaction("sendMessage",$wrng_frmat);
+print_r($dadel);
+    }
+else{
+ $insta = json_decode(file_get_contents("https://i-love-php.tk/Stark/Thug/insta.php?username=$username"),true);
+ $bio = $insta['biography'];
+ $followers = $insta['edge_followed_by']['count'];
+ $following = $insta['edge_follow']['count'];
+ $full_name = $insta['full_name'];
+ if($insta['is_verified'] == ''){
+ $is_verified = "No";
+}
+else{
+    $is_verified = "Yes";
+}
+ if($insta['is_private'] == ''){
+ $is_private = "No";
+}
+else{
+    $is_private = "Yes";
+}
+ $profile_pic = $insta['profile_pic_url_hd'];
+ $total_posts = $insta['edge_owner_to_timeline_media']['count'];   
+
+ $message_with_details ="
+ <b>INSTAGRAM DETAILS ARE GENERATED SUCCESSFULLY</b>
+ \n<b>Full Name</b> : $full_name\n<b>Bio</b> : $bio\n<b>Followers</b> : $followers\n<b>Following</b> : $following\n<b>Is Verifed</b> : $is_verified\n<b>Is Private</b> : $is_private\n<b>Total Posts</b> : $total_posts\n<b>Insta Link</b> :<a href='https://instagram.com/$username'>Link</a>";
+
+ $send_insta_details = [
+        'chat_id'=>$cid,
+        'photo'=>"$profile_pic",
+        'caption'=>"$message_with_details",
+        'reply_to_message_id'=>$mid,
+        'disable_web_page_preview'=>'True',
+        'parse_mode'=>"HTML",
+];
+botaction("sendPhoto",$send_insta_details);
+print_r($dadel);
+}
+
+}
+
 }//End Maine Else
 
